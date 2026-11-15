@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 
+const randomClubPhotos = [
+  'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80',
+]
+
 export function CreateClubPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', description: '', logo_url: '' })
@@ -24,10 +32,11 @@ export function CreateClubPage() {
       return
     }
     setIsLoading(true)
+    const randomPic = randomClubPhotos[Math.floor(Math.random() * randomClubPhotos.length)]
     try {
       await api.post('/api/clubs', {
         ...form,
-        logo_url: form.logo_url || undefined,
+        logo_url: form.logo_url || randomPic,
       })
       navigate('/clubs')
     } catch (err: unknown) {

@@ -61,9 +61,19 @@ def list_events(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+def _can_manage_events(user_id: str) -> bool:
+    try:
+        profile = supabase.table("profiles").select("role").eq("id", user_id).single().execute()
+        return profile.data.get("role") in ("admin", "faculty", "staff", "club_leader")
+    except Exception:
+        return False
+
+
 @router.post("/")
 def create_event(data: EventCreate, authorization: Optional[str] = Header(None)):
     user, token = get_current_user(authorization)
+    if not _can_manage_events(user.id):
+        raise HTTPException(status_code=403, detail="Permission denied. Only admins, faculty, staff, and club leaders can create events.")
     try:
         payload = data.model_dump(exclude_none=True)
         # Serialize datetime to ISO string for Supabase
@@ -104,7 +114,7 @@ def update_event(event_id: str, data: EventUpdate, authorization: Optional[str] 
         # Fetch existing event to check ownership
         existing = supabase.table("events").select("created_by").eq("id", event_id).single().execute()
         profile = supabase.table("profiles").select("role").eq("id", user.id).single().execute()
-        is_admin = profile.data.get("role") == "admin"
+        is_admin = profile.data.get("role") in ("admin", "faculty", "staff")
         if existing.data["created_by"] != user.id and not is_admin:
             raise HTTPException(status_code=403, detail="Not authorized to update this event")
         payload = data.model_dump(exclude_none=True)
@@ -124,7 +134,7 @@ def delete_event(event_id: str, authorization: Optional[str] = Header(None)):
     try:
         existing = supabase.table("events").select("created_by").eq("id", event_id).single().execute()
         profile = supabase.table("profiles").select("role").eq("id", user.id).single().execute()
-        is_admin = profile.data.get("role") == "admin"
+        is_admin = profile.data.get("role") in ("admin", "faculty", "staff")
         if existing.data["created_by"] != user.id and not is_admin:
             raise HTTPException(status_code=403, detail="Not authorized to delete this event")
         supabase_admin.table("events").delete().eq("id", event_id).execute()

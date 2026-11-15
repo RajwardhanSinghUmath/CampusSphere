@@ -19,6 +19,7 @@ import { LostFoundDetailPage } from './pages/LostFoundDetailPage'
 import { CreateLostFoundPage } from './pages/CreateLostFoundPage'
 import { ResourcesPage } from './pages/ResourcesPage'
 import { CreateResourcePage } from './pages/CreateResourcePage'
+import { AiAssistantPage } from './pages/AiAssistantPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -36,17 +37,30 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin, isLoading } = useAuth()
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+// Allows Admin, Faculty, Staff, Club Leader
+function EventCreatorRoute({ children }: { children: React.ReactNode }) {
+  const { user, canCreateEvents, isLoading } = useAuth()
+  if (isLoading) return null
   if (!user) return <Navigate to="/login" replace />
-  if (!isAdmin) return <Navigate to="/" replace />
+  if (!canCreateEvents) return <Navigate to="/events" replace />
+  return <>{children}</>
+}
+
+// Allows Admin, Faculty, Club Leader
+function ClubCreatorRoute({ children }: { children: React.ReactNode }) {
+  const { user, canCreateClubs, isLoading } = useAuth()
+  if (isLoading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (!canCreateClubs) return <Navigate to="/clubs" replace />
+  return <>{children}</>
+}
+
+// Allows Admin, Faculty, Staff
+function AnnouncementCreatorRoute({ children }: { children: React.ReactNode }) {
+  const { user, canCreateAnnouncements, isLoading } = useAuth()
+  if (isLoading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (!canCreateAnnouncements) return <Navigate to="/announcements" replace />
   return <>{children}</>
 }
 
@@ -65,15 +79,18 @@ function AppRoutes() {
         }
       >
         <Route index element={<DashboardPage />} />
+
+        {/* AI Assistant Powered by Groq */}
+        <Route path="ai-assistant" element={<AiAssistantPage />} />
         
         {/* Events */}
         <Route path="events" element={<EventsPage />} />
         <Route
           path="events/create"
           element={
-            <AdminRoute>
+            <EventCreatorRoute>
               <CreateEventPage />
-            </AdminRoute>
+            </EventCreatorRoute>
           }
         />
         <Route path="events/:id" element={<EventDetailPage />} />
@@ -83,9 +100,9 @@ function AppRoutes() {
         <Route
           path="clubs/create"
           element={
-            <AdminRoute>
+            <ClubCreatorRoute>
               <CreateClubPage />
-            </AdminRoute>
+            </ClubCreatorRoute>
           }
         />
         <Route path="clubs/:id" element={<ClubDetailPage />} />
@@ -95,9 +112,9 @@ function AppRoutes() {
         <Route
           path="announcements/create"
           element={
-            <AdminRoute>
+            <AnnouncementCreatorRoute>
               <CreateAnnouncementPage />
-            </AdminRoute>
+            </AnnouncementCreatorRoute>
           }
         />
         <Route path="announcements/:id" element={<AnnouncementDetailPage />} />

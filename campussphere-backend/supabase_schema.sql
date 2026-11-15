@@ -6,7 +6,7 @@ create table profiles (
   id uuid references auth.users on delete cascade primary key,
   email text not null,
   full_name text not null,
-  role text not null default 'student' check (role in ('student', 'admin')),
+  role text not null default 'student' check (role in ('student', 'admin', 'club_leader', 'faculty', 'staff')),
   avatar_url text,
   created_at timestamp with time zone default now()
 );

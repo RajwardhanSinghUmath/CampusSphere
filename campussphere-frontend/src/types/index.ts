@@ -1,8 +1,10 @@
+export type UserRole = 'student' | 'admin' | 'club_leader' | 'faculty' | 'staff'
+
 export interface User {
   id: string
   email: string
   full_name: string
-  role: 'student' | 'admin'
+  role: UserRole
   avatar_url?: string
   created_at: string
 }

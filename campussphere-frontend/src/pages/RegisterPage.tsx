@@ -111,7 +111,10 @@ export function RegisterPage() {
               className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="student">Student</option>
-              <option value="admin">Admin</option>
+              <option value="club_leader">Club Leader</option>
+              <option value="faculty">Faculty / Professor</option>
+              <option value="staff">Campus Staff</option>
+              <option value="admin">Administrator</option>
             </select>
           </div>
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>

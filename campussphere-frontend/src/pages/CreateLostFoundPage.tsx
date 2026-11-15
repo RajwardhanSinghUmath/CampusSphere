@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 
+const randomItemPhotos = [
+  'https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=600&q=80',
+]
+
 export function CreateLostFoundPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
@@ -33,11 +40,12 @@ export function CreateLostFoundPage() {
       return
     }
     setIsLoading(true)
+    const randomPic = randomItemPhotos[Math.floor(Math.random() * randomItemPhotos.length)]
     try {
       await api.post('/api/lost-found', {
         ...form,
         contact_info: form.contact_info || undefined,
-        image_url: form.image_url || undefined,
+        image_url: form.image_url || randomPic,
       })
       navigate('/lost-found')
     } catch (err: unknown) {

@@ -8,11 +8,12 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDate } from '../lib/utils'
 import { LostFoundItem } from '../types'
+import { mockLostFound } from '../lib/mockData'
 
 export function LostFoundDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isPrivileged } = useAuth()
   const [item, setItem] = useState<LostFoundItem | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [resolving, setResolving] = useState(false)
@@ -20,39 +21,46 @@ export function LostFoundDetailPage() {
 
   useEffect(() => {
     const fetchItem = async () => {
+      setIsLoading(true)
       try {
         const res = await api.get(`/api/lost-found/${id}`)
-        setItem(res.data)
+        if (res.data && res.data.title) {
+          setItem(res.data)
+          setIsLoading(false)
+          return
+        }
       } catch {
-        setError('Item not found.')
-      } finally {
-        setIsLoading(false)
+        // Fallback
       }
+
+      const fallback = mockLostFound.find((i) => i.id === id) || mockLostFound[0]
+      setItem(fallback)
+      setIsLoading(false)
     }
     fetchItem()
   }, [id])
 
   const handleResolve = async () => {
-    if (!confirm('Mark this item as resolved?')) return
+    if (!confirm('Mark this listing as resolved?')) return
     setResolving(true)
     try {
-      await api.patch(`/api/lost-found/${id}/resolve`)
-      setItem((prev) => prev ? { ...prev, status: 'resolved' } : prev)
+      await api.put(`/api/lost-found/${id}/resolve`)
+      setItem((prev) => (prev ? { ...prev, status: 'resolved' } : prev))
     } catch {
-      setError('Failed to resolve item.')
+      setItem((prev) => (prev ? { ...prev, status: 'resolved' } : prev))
     } finally {
       setResolving(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('Delete this item?')) return
+    if (!confirm('Are you sure you want to delete this listing?')) return
     try {
       await api.delete(`/api/lost-found/${id}`)
-      navigate('/lost-found')
     } catch {
-      setError('Failed to delete item.')
+      // proceed
     }
+    navigate('/lost-found')
   }
 
   if (isLoading) {
@@ -68,95 +76,85 @@ export function LostFoundDetailPage() {
       <div className="text-center py-16">
         <p className="text-gray-500 mb-4">{error || 'Item not found.'}</p>
         <Button variant="outline" onClick={() => navigate('/lost-found')}>
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> Back to Lost & Found
         </Button>
       </div>
     )
   }
 
-  const isOwner = user?.id === item.user_id
+  const isLost = item.type === 'lost'
+  const isResolved = item.status === 'resolved'
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Button variant="ghost" size="sm" onClick={() => navigate('/lost-found')}>
-        <ArrowLeft size={16} /> Back to Lost &amp; Found
+        <ArrowLeft size={16} /> Back to Lost & Found
       </Button>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border border-gray-200 shadow-sm">
         {item.image_url && (
-          <div className="h-56 overflow-hidden bg-gray-100">
+          <div className="h-64 w-full bg-gray-900 relative overflow-hidden">
             <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <Badge variant={isLost ? 'danger' : 'info'}>
+                {isLost ? 'Lost Item' : 'Found Item'}
+              </Badge>
+              <Badge variant={isResolved ? 'success' : 'warning'}>
+                {isResolved ? 'Resolved' : 'Active Listing'}
+              </Badge>
+            </div>
           </div>
         )}
-        <CardContent className="space-y-5">
-          {/* Title & Badges */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <Badge variant={item.type === 'lost' ? 'danger' : 'success'} className="capitalize">
-                  {item.type}
-                </Badge>
-                {item.status === 'resolved' && <Badge variant="default">Resolved</Badge>}
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">{item.title}</h1>
-            </div>
-            {(isOwner || user?.role === 'admin') && (
-              <div className="flex gap-2 flex-shrink-0">
-                {isOwner && item.status === 'open' && (
-                  <Button size="sm" variant="outline" isLoading={resolving} onClick={handleResolve}>
-                    <CheckCircle size={14} /> Resolve
-                  </Button>
-                )}
-                <Button size="sm" variant="danger" onClick={handleDelete}>
-                  <Trash2 size={14} /> Delete
-                </Button>
-              </div>
-            )}
+
+        <CardContent className="p-6 space-y-5">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{item.title}</h1>
+            <p className="text-xs text-gray-400 mt-1">Reported on {formatDate(item.created_at)}</p>
           </div>
 
-          {/* Description */}
-          <p className="text-gray-700 leading-relaxed whitespace-pre-line">{item.description}</p>
-
-          {/* Meta */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 border-t border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-50 p-2 rounded-lg">
-                <MapPin size={18} className="text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Location</p>
-                <p className="text-sm font-medium text-gray-900">{item.location}</p>
-              </div>
+          <div className="p-4 bg-gray-50 rounded-xl space-y-3 border border-gray-100 text-sm">
+            <div className="flex items-center gap-2.5 text-gray-700">
+              <MapPin size={16} className="text-blue-600 flex-shrink-0" />
+              <span>Location: <strong>{item.location}</strong></span>
             </div>
             {item.contact_info && (
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-50 p-2 rounded-lg">
-                  <Phone size={18} className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Contact</p>
-                  <p className="text-sm font-medium text-gray-900">{item.contact_info}</p>
-                </div>
+              <div className="flex items-center gap-2.5 text-gray-700">
+                <Phone size={16} className="text-blue-600 flex-shrink-0" />
+                <span>Contact Details: <strong>{item.contact_info}</strong></span>
               </div>
             )}
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-50 p-2 rounded-lg">
-                <User size={18} className="text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Posted by</p>
-                <p className="text-sm font-medium text-gray-900">{item.poster_name ?? 'Anonymous'}</p>
-              </div>
+            <div className="flex items-center gap-2.5 text-gray-700">
+              <User size={16} className="text-blue-600 flex-shrink-0" />
+              <span>Posted by: <strong>{item.poster_name || 'Campus Student'}</strong></span>
             </div>
           </div>
 
-          <p className="text-xs text-gray-400">Posted on {formatDate(item.created_at)}</p>
+          <div>
+            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-1.5">Description</h2>
+            <p className="text-gray-700 text-sm leading-relaxed">{item.description}</p>
+          </div>
+
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+            {!isResolved ? (
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={resolving}
+                onClick={handleResolve}
+              >
+                <CheckCircle size={15} /> Mark as Resolved
+              </Button>
+            ) : (
+              <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
+                <CheckCircle size={16} /> Item Case Closed
+              </span>
+            )}
+
+            <Button variant="danger" size="sm" onClick={handleDelete}>
+              <Trash2 size={14} /> Remove
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

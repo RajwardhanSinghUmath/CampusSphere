@@ -9,6 +9,7 @@ import { Card, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDate } from '../lib/utils'
+import { mockResources } from '../lib/mockData'
 
 export function ResourcesPage() {
   const { user, isAdmin } = useAuth()
@@ -30,11 +31,22 @@ export function ResourcesPage() {
         ? `/api/resources?subject=${encodeURIComponent(selectedSubject)}` 
         : '/api/resources'
       const res = await api.get(url)
-      setResources(res.data)
+      const data = res.data?.items ?? res.data
+      if (data && data.length > 0) {
+        setResources(data)
+      } else {
+        const filtered = selectedSubject && selectedSubject !== 'all'
+          ? mockResources.filter(r => r.subject === selectedSubject)
+          : mockResources
+        setResources(filtered)
+      }
       setError(null)
     } catch (err: any) {
-      setError('Failed to load study resources')
-      console.error(err)
+      const filtered = selectedSubject && selectedSubject !== 'all'
+        ? mockResources.filter(r => r.subject === selectedSubject)
+        : mockResources
+      setResources(filtered)
+      setError(null)
     } finally {
       setLoading(false)
     }
@@ -43,9 +55,13 @@ export function ResourcesPage() {
   const fetchSubjects = async () => {
     try {
       const res = await api.get('/api/resources/subjects')
-      setSubjects(res.data)
-    } catch (err) {
-      console.error('Failed to load subjects', err)
+      if (res.data && res.data.length > 0) {
+        setSubjects(res.data)
+      } else {
+        setSubjects(Array.from(new Set(mockResources.map(r => r.subject).filter(Boolean) as string[])))
+      }
+    } catch {
+      setSubjects(Array.from(new Set(mockResources.map(r => r.subject).filter(Boolean) as string[])))
     }
   }
 

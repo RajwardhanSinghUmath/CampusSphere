@@ -9,8 +9,9 @@ router = APIRouter()
 
 def _require_admin(user_id: str):
     profile = supabase.table("profiles").select("role").eq("id", user_id).single().execute()
-    if profile.data.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+    role = profile.data.get("role")
+    if role not in ("admin", "faculty", "staff"):
+        raise HTTPException(status_code=403, detail="Admin, faculty, or staff access required")
 
 
 def _enrich_with_author(announcement: dict) -> dict:

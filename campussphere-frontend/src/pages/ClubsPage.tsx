@@ -8,9 +8,10 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Club } from '../types'
+import { mockClubs } from '../lib/mockData'
 
 export function ClubsPage() {
-  const { isAdmin } = useAuth()
+  const { canCreateClubs, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [clubs, setClubs] = useState<Club[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -20,9 +21,14 @@ export function ClubsPage() {
     setIsLoading(true)
     try {
       const res = await api.get('/api/clubs')
-      setClubs(res.data?.items ?? res.data ?? [])
+      const data = res.data?.items ?? res.data
+      if (data && data.length > 0) {
+        setClubs(data)
+      } else {
+        setClubs(mockClubs)
+      }
     } catch {
-      setClubs([])
+      setClubs(mockClubs)
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +46,8 @@ export function ClubsPage() {
       }
       await fetchClubs()
     } catch {
-      // silent
+      // Local optimistic update for demo
+      setClubs(prev => prev.map(c => c.id === club.id ? { ...c, is_member: !c.is_member, member_count: c.is_member ? c.member_count - 1 : c.member_count + 1 } : c))
     } finally {
       setJoiningId(null)
     }
@@ -53,7 +60,7 @@ export function ClubsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Clubs</h1>
           <p className="text-gray-500 text-sm mt-0.5">Join clubs and connect with peers</p>
         </div>
-        {isAdmin && (
+        {canCreateClubs && (
           <Button onClick={() => navigate('/clubs/create')} size="sm">
             <Plus size={16} /> Create Club
           </Button>

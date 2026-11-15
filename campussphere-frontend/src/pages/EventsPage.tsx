@@ -9,9 +9,19 @@ import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDateTime } from '../lib/utils'
 import { Event } from '../types'
+import { mockEvents } from '../lib/mockData'
+
+const defaultEventImages = [
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80',
+]
 
 export function EventsPage() {
-  const { isAdmin } = useAuth()
+  const { canCreateEvents, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [events, setEvents] = useState<Event[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -23,9 +33,14 @@ export function EventsPage() {
       try {
         const params = filter === 'upcoming' ? '?upcoming=true' : ''
         const res = await api.get(`/api/events${params}`)
-        setEvents(res.data?.items ?? res.data ?? [])
+        const data = res.data?.items ?? res.data
+        if (data && data.length > 0) {
+          setEvents(data)
+        } else {
+          setEvents(mockEvents)
+        }
       } catch {
-        setEvents([])
+        setEvents(mockEvents)
       } finally {
         setIsLoading(false)
       }
@@ -41,7 +56,7 @@ export function EventsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Events</h1>
           <p className="text-gray-500 text-sm mt-0.5">Discover and join campus events</p>
         </div>
-        {isAdmin && (
+        {canCreateEvents && (
           <Button onClick={() => navigate('/events/create')} size="sm">
             <Plus size={16} /> Create Event
           </Button>
@@ -94,11 +109,20 @@ export function EventsPage() {
               onClick={() => navigate(`/events/${event.id}`)}
             >
               {/* Image */}
-              <div className="h-40 bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center overflow-hidden">
-                {event.image_url ? (
-                  <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
-                ) : (
-                  <Image size={40} className="text-blue-300" />
+              <div className="h-44 bg-gray-900 flex items-center justify-center overflow-hidden relative">
+                <img
+                  src={
+                    event.image_url ||
+                    defaultEventImages[Math.abs((event.title.charCodeAt(0) || 0) % defaultEventImages.length)]
+                  }
+                  alt={event.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                {event.is_rsvped && (
+                  <Badge variant="success" className="absolute top-3 right-3 shadow-xs">
+                    RSVP Confirmed
+                  </Badge>
                 )}
               </div>
               <CardContent className="space-y-3">

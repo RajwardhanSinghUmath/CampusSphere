@@ -9,9 +9,10 @@ import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDate } from '../lib/utils'
 import { Announcement } from '../types'
+import { mockAnnouncements } from '../lib/mockData'
 
 export function AnnouncementsPage() {
-  const { isAdmin } = useAuth()
+  const { canCreateAnnouncements, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -20,9 +21,14 @@ export function AnnouncementsPage() {
     const fetchAnnouncements = async () => {
       try {
         const res = await api.get('/api/announcements?pinned_first=true')
-        setAnnouncements(res.data?.items ?? res.data ?? [])
+        const data = res.data?.items ?? res.data
+        if (data && data.length > 0) {
+          setAnnouncements(data)
+        } else {
+          setAnnouncements(mockAnnouncements)
+        }
       } catch {
-        setAnnouncements([])
+        setAnnouncements(mockAnnouncements)
       } finally {
         setIsLoading(false)
       }
@@ -63,7 +69,7 @@ export function AnnouncementsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
           <p className="text-gray-500 text-sm mt-0.5">Stay updated with the latest campus news</p>
         </div>
-        {isAdmin && (
+        {canCreateAnnouncements && (
           <Button onClick={() => navigate('/announcements/create')} size="sm">
             <Plus size={16} /> Create
           </Button>

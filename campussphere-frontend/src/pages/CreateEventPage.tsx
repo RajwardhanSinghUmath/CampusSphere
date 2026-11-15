@@ -6,6 +6,15 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 
+const randomEventPhotos = [
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1200&q=80',
+]
+
 export function CreateEventPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
@@ -31,11 +40,12 @@ export function CreateEventPage() {
       return
     }
     setIsLoading(true)
+    const randomPic = randomEventPhotos[Math.floor(Math.random() * randomEventPhotos.length)]
     try {
       await api.post('/api/events', {
         ...form,
         max_attendees: form.max_attendees ? Number(form.max_attendees) : undefined,
-        image_url: form.image_url || undefined,
+        image_url: form.image_url || randomPic,
       })
       navigate('/events')
     } catch (err: unknown) {
