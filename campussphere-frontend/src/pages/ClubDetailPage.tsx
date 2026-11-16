@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDateTime } from '../lib/utils'
 import { Club, Event } from '../types'
-import { getAllClubs, mockEvents } from '../lib/mockData'
+import { getAllClubs, mockClubs, mockEvents } from '../lib/mockData'
 
 interface Member {
   id: string
@@ -67,7 +67,8 @@ export function ClubDetailPage() {
         setEvents(mockEvents.slice(0, 2))
       }
     } catch {
-      const fallback = mockClubs.find((c) => c.id === id) || mockClubs[0]
+      const allClubs = getAllClubs()
+      const fallback = allClubs.find((c) => c.id === id) || allClubs[0]
       setClub(fallback)
       setMembers(defaultClubMembers)
       setEvents(mockEvents.slice(0, 2))
