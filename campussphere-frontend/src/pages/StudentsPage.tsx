@@ -532,6 +532,21 @@ export function StudentsPage() {
                   {activeModalStudent.email}
                 </span>
               </div>
+              {activeModalStudent.interests && activeModalStudent.interests.length > 0 && (
+                <div className="col-span-2 pt-2 border-t border-gray-200">
+                  <span className="text-gray-400 block font-medium mb-1.5">Student Interests</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeModalStudent.interests.map((interest) => (
+                      <span
+                        key={interest}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">

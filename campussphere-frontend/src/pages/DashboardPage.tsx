@@ -78,6 +78,19 @@ export function DashboardPage() {
             Welcome back, {user?.full_name?.split(' ')[0] ?? 'there'}
           </h1>
           <p className="text-gray-500 mt-1">Here's what's happening on campus today.</p>
+          {user?.interests && user.interests.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <span className="text-xs font-medium text-gray-400">Your Interests:</span>
+              {user.interests.map((interest) => (
+                <span
+                  key={interest}
+                  className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <Link
           to="/ai-assistant"

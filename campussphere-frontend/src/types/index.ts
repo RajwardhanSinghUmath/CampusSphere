@@ -6,6 +6,8 @@ export interface User {
   full_name: string
   role: UserRole
   avatar_url?: string
+  department?: string
+  interests?: string[]
   created_at: string
 }
 
@@ -82,5 +84,6 @@ export interface StudentRecord {
   role: string
   cgpa: number
   status: 'active' | 'inactive'
+  interests?: string[]
   created_at: string
 }

@@ -35,7 +35,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   switchRole: (role: UserRole) => Promise<void>
   loginAsDemo: (role: UserRole) => Promise<void> // alias for backward compatibility
-  register: (email: string, password: string, full_name: string, role?: string, department?: string) => Promise<void>
+  register: (email: string, password: string, full_name: string, role?: string, department?: string, interests?: string[]) => Promise<void>
   logout: () => void
 }
 
@@ -174,10 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     full_name: string,
     role: string = 'student',
-    department: string = 'Computer Science & Engineering'
+    department: string = 'Computer Science & Engineering',
+    interests: string[] = []
   ) => {
     try {
-      await api.post('/api/auth/register', { email, password, full_name, role })
+      await api.post('/api/auth/register', { email, password, full_name, role, department, interests })
     } catch {
       // Gracefully persist locally
     }
@@ -189,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       full_name: full_name.trim(),
       role: (role as UserRole) || 'student',
       department,
+      interests,
       created_at: new Date().toISOString(),
     }
 
@@ -206,6 +208,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: newUserRecord.email,
       full_name: newUserRecord.full_name,
       role: newUserRecord.role,
+      department: newUserRecord.department,
+      interests: newUserRecord.interests,
       created_at: newUserRecord.created_at,
     }
     const userToken = `campus-auth-token-${newUserRecord.role}`

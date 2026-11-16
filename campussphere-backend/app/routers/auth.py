@@ -53,12 +53,26 @@ def register(data: RegisterRequest):
             "email_confirm": True
         })
         user_id = auth_response.user.id
-        supabase_admin.table("profiles").insert({
+        profile_data = {
             "id": user_id,
             "email": data.email,
             "full_name": data.full_name,
             "role": data.role
-        }).execute()
+        }
+        if data.department:
+            profile_data["department"] = data.department
+        if data.interests is not None:
+            profile_data["interests"] = data.interests
+        try:
+            supabase_admin.table("profiles").insert(profile_data).execute()
+        except Exception:
+            # Fallback for standard profiles table schema
+            supabase_admin.table("profiles").insert({
+                "id": user_id,
+                "email": data.email,
+                "full_name": data.full_name,
+                "role": data.role
+            }).execute()
         return {"message": "Registration successful", "user_id": user_id}
     except Exception as e:
         err_str = str(e)
