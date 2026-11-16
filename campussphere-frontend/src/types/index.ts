@@ -70,3 +70,17 @@ export interface Resource {
   created_at: string
   uploader_name?: string
 }
+
+export interface StudentRecord {
+  id: string
+  full_name: string
+  email: string
+  roll_number: string
+  department: string
+  semester: number
+  batch: string
+  role: string
+  cgpa: number
+  status: 'active' | 'inactive'
+  created_at: string
+}

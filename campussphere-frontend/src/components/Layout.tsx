@@ -25,6 +25,7 @@ const navItems = [
   { path: '/events', icon: Calendar, label: 'Events' },
   { path: '/clubs', icon: Users, label: 'Clubs' },
   { path: '/announcements', icon: Bell, label: 'Announcements' },
+  { path: '/students', icon: GraduationCap, label: 'Student Registry', roles: ['admin', 'faculty', 'staff'] },
   { path: '/lost-found', icon: Search, label: 'Lost & Found' },
   { path: '/resources', icon: BookOpen, label: 'Resources' },
 ]
@@ -72,7 +73,9 @@ function SidebarContent({
 
       {/* Nav items */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ path, icon: Icon, label, highlight }) => {
+        {navItems
+          .filter(item => !item.roles || item.roles.includes(currentRole))
+          .map(({ path, icon: Icon, label, highlight }) => {
           const isActive = currentPath === path
           return (
             <Link

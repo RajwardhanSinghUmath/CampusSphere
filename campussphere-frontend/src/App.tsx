@@ -20,6 +20,7 @@ import { CreateLostFoundPage } from './pages/CreateLostFoundPage'
 import { ResourcesPage } from './pages/ResourcesPage'
 import { CreateResourcePage } from './pages/CreateResourcePage'
 import { AiAssistantPage } from './pages/AiAssistantPage'
+import { StudentsPage } from './pages/StudentsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -61,6 +62,15 @@ function AnnouncementCreatorRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) return null
   if (!user) return <Navigate to="/login" replace />
   if (!canCreateAnnouncements) return <Navigate to="/announcements" replace />
+  return <>{children}</>
+}
+
+// Allows Admin, Faculty, Staff
+function StudentsViewRoute({ children }: { children: React.ReactNode }) {
+  const { user, canViewStudents, isLoading } = useAuth()
+  if (isLoading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (!canViewStudents) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -127,6 +137,16 @@ function AppRoutes() {
         {/* Resources */}
         <Route path="resources" element={<ResourcesPage />} />
         <Route path="resources/create" element={<CreateResourcePage />} />
+
+        {/* Student Registrations Registry (Admin, Faculty, Staff) */}
+        <Route
+          path="students"
+          element={
+            <StudentsViewRoute>
+              <StudentsPage />
+            </StudentsViewRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,4 +1,4 @@
-import { Event, Club, Announcement, LostFoundItem, Resource } from '../types'
+import { Event, Club, Announcement, LostFoundItem, Resource, StudentRecord } from '../types'
 
 const now = new Date()
 const addDays = (d: number) => new Date(now.getTime() + d * 86400000).toISOString()
@@ -371,5 +371,47 @@ export function saveCustomLostFound(item: LostFoundItem): LostFoundItem[] {
     return [...updated, ...mockLostFound]
   } catch {
     return mockLostFound
+  }
+}
+
+export const mockStudents: StudentRecord[] = [
+  { id: "s001", full_name: "Aarav Patel", email: "aarav.p@nit.edu", roll_number: "21CS042", department: "Computer Science & Engineering", semester: 5, batch: "2021-25", role: "student", cgpa: 8.7, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s002", full_name: "Ananya Sen", email: "ananya.s@nit.edu", roll_number: "21CS019", department: "Computer Science & Engineering", semester: 5, batch: "2021-25", role: "club_leader", cgpa: 9.1, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s003", full_name: "Rohan Gupta", email: "rohan.g@nit.edu", roll_number: "21EC033", department: "Electronics & Communication", semester: 5, batch: "2021-25", role: "student", cgpa: 7.9, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s004", full_name: "Pooja Nair", email: "pooja.n@nit.edu", roll_number: "22ME011", department: "Mechanical Engineering", semester: 3, batch: "2022-26", role: "student", cgpa: 8.3, status: "active", created_at: "2022-08-01T09:00:00Z" },
+  { id: "s005", full_name: "Karan Mehta", email: "karan.m@nit.edu", roll_number: "22CS047", department: "Computer Science & Engineering", semester: 3, batch: "2022-26", role: "student", cgpa: 8.0, status: "active", created_at: "2022-08-01T09:00:00Z" },
+  { id: "s006", full_name: "Sneha Iyer", email: "sneha.i@nit.edu", roll_number: "21CE005", department: "Civil Engineering", semester: 5, batch: "2021-25", role: "student", cgpa: 7.5, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s007", full_name: "Arjun Sharma", email: "arjun.s@nit.edu", roll_number: "23CS008", department: "Computer Science & Engineering", semester: 1, batch: "2023-27", role: "student", cgpa: 9.4, status: "active", created_at: "2023-08-01T09:00:00Z" },
+  { id: "s008", full_name: "Divya Reddy", email: "divya.r@nit.edu", roll_number: "21EE022", department: "Electrical Engineering", semester: 5, batch: "2021-25", role: "student", cgpa: 8.6, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s009", full_name: "Rahul Joshi", email: "rahul.j@nit.edu", roll_number: "22EC044", department: "Electronics & Communication", semester: 3, batch: "2022-26", role: "student", cgpa: 7.2, status: "inactive", created_at: "2022-08-01T09:00:00Z" },
+  { id: "s010", full_name: "Priya Krishnan", email: "priya.k@nit.edu", roll_number: "20CS003", department: "Computer Science & Engineering", semester: 7, batch: "2020-24", role: "student", cgpa: 9.2, status: "active", created_at: "2020-08-01T09:00:00Z" },
+  { id: "s011", full_name: "Nikhil Bansal", email: "nikhil.b@nit.edu", roll_number: "21IT029", department: "Information Technology", semester: 5, batch: "2021-25", role: "student", cgpa: 8.1, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s012", full_name: "Meera Pillai", email: "meera.p@nit.edu", roll_number: "22CE016", department: "Civil Engineering", semester: 3, batch: "2022-26", role: "club_leader", cgpa: 8.9, status: "active", created_at: "2022-08-01T09:00:00Z" },
+  { id: "s013", full_name: "Aditya Kumar", email: "aditya.k@nit.edu", roll_number: "23ME007", department: "Mechanical Engineering", semester: 1, batch: "2023-27", role: "student", cgpa: 7.8, status: "active", created_at: "2023-08-01T09:00:00Z" },
+  { id: "s014", full_name: "Sanjana Verma", email: "sanjana.v@nit.edu", roll_number: "21CS056", department: "Computer Science & Engineering", semester: 5, batch: "2021-25", role: "student", cgpa: 8.4, status: "active", created_at: "2021-08-01T09:00:00Z" },
+  { id: "s015", full_name: "Vivek Nair", email: "vivek.n@nit.edu", roll_number: "20EE018", department: "Electrical Engineering", semester: 7, batch: "2020-24", role: "student", cgpa: 7.6, status: "active", created_at: "2020-08-01T09:00:00Z" },
+]
+
+export function getAllStudents(): StudentRecord[] {
+  try {
+    const registered = JSON.parse(localStorage.getItem('campussphere_registered_users') || '[]')
+    const registeredStudents: StudentRecord[] = registered
+      .filter((u: any) => u.role === 'student' || u.role === 'club_leader' || !u.role)
+      .map((u: any, idx: number) => ({
+        id: u.id || `reg-${idx}`,
+        full_name: u.full_name,
+        email: u.email,
+        roll_number: `23CS${(900 + idx).toString()}`,
+        department: u.department || 'Computer Science & Engineering',
+        semester: 1,
+        batch: '2023-27',
+        role: u.role || 'student',
+        cgpa: 8.5,
+        status: 'active' as const,
+        created_at: u.created_at || new Date().toISOString(),
+      }))
+    return [...registeredStudents, ...mockStudents]
+  } catch {
+    return mockStudents
   }
 }

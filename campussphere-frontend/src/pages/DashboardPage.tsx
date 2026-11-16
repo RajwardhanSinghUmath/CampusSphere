@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Users, AlertTriangle, Bell, ChevronRight, Sparkles } from 'lucide-react'
+import { Calendar, Users, AlertTriangle, Bell, ChevronRight, Sparkles, GraduationCap } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../lib/api'
 import { Card, CardContent, CardHeader } from '../components/ui/Card'
@@ -58,10 +58,15 @@ export function DashboardPage() {
     fetchData()
   }, [])
 
+  const isPrivilegedRole = ['admin', 'faculty', 'staff'].includes(user?.role || '')
+
   const statCards = [
     { label: 'Total Events', value: stats?.total_events ?? '—', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Total Clubs', value: stats?.total_clubs ?? '—', icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
     { label: 'Open Lost Items', value: stats?.open_lost_items ?? '—', icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50' },
+    ...(isPrivilegedRole
+      ? [{ label: 'Student Registry', value: '15 Enrolled', icon: GraduationCap, color: 'text-purple-600', bg: 'bg-purple-50', link: '/students' }]
+      : []),
   ]
 
   return (
@@ -85,9 +90,9 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {statCards.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label}>
+      <div className={`grid grid-cols-1 ${isPrivilegedRole ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'} gap-4`}>
+        {statCards.map(({ label, value, icon: Icon, color, bg, link }) => {
+          const content = (
             <CardContent className="flex items-center gap-4">
               <div className={`${bg} p-3 rounded-xl`}>
                 <Icon className={color} size={24} />
@@ -97,8 +102,18 @@ export function DashboardPage() {
                 <p className="text-sm text-gray-500">{label}</p>
               </div>
             </CardContent>
-          </Card>
-        ))}
+          )
+
+          return link ? (
+            <Link key={label} to={link} className="block transition-transform hover:-translate-y-0.5">
+              <Card className="hover:border-blue-400 transition-colors cursor-pointer">
+                {content}
+              </Card>
+            </Link>
+          ) : (
+            <Card key={label}>{content}</Card>
+          )
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

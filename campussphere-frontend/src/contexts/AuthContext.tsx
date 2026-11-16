@@ -30,6 +30,7 @@ interface AuthContextType {
   canCreateEvents: boolean
   canCreateAnnouncements: boolean
   canCreateClubs: boolean
+  canViewStudents: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   switchRole: (role: UserRole) => Promise<void>
@@ -230,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const canCreateEvents = ['admin', 'faculty', 'staff', 'club_leader'].includes(role)
   const canCreateAnnouncements = ['admin', 'faculty', 'staff'].includes(role)
   const canCreateClubs = ['admin', 'faculty', 'club_leader'].includes(role)
+  const canViewStudents = ['admin', 'faculty', 'staff'].includes(role)
 
   return (
     <AuthContext.Provider
@@ -244,6 +246,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         canCreateEvents,
         canCreateAnnouncements,
         canCreateClubs,
+        canViewStudents,
         isLoading,
         login,
         switchRole,
