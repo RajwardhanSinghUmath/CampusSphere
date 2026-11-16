@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDateTime } from '../lib/utils'
 import { Event } from '../types'
-import { mockEvents } from '../lib/mockData'
+import { getAllEvents } from '../lib/mockData'
 
 const defaultEventImages = [
   'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
@@ -41,7 +41,8 @@ export function EventDetailPage() {
       // Fallback to mock event data
     }
 
-    const fallback = mockEvents.find((e) => e.id === id) || mockEvents[0]
+    const allEvs = getAllEvents()
+    const fallback = allEvs.find((e) => e.id === id) || allEvs[0]
     setEvent(fallback)
     setIsLoading(false)
   }

@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDate } from '../lib/utils'
 import { LostFoundItem } from '../types'
-import { mockLostFound } from '../lib/mockData'
+import { getAllLostFound } from '../lib/mockData'
 
 export function LostFoundDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -33,7 +33,8 @@ export function LostFoundDetailPage() {
         // Fallback
       }
 
-      const fallback = mockLostFound.find((i) => i.id === id) || mockLostFound[0]
+      const allItems = getAllLostFound()
+      const fallback = allItems.find((i) => i.id === id) || allItems[0]
       setItem(fallback)
       setIsLoading(false)
     }

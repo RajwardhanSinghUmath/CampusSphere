@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDate } from '../lib/utils'
 import { Announcement } from '../types'
-import { mockAnnouncements } from '../lib/mockData'
+import { getAllAnnouncements } from '../lib/mockData'
 
 export function AnnouncementDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -32,7 +32,8 @@ export function AnnouncementDetailPage() {
         // Fallback
       }
 
-      const fallback = mockAnnouncements.find((a) => a.id === id) || mockAnnouncements[0]
+      const allAnns = getAllAnnouncements()
+      const fallback = allAnns.find((a) => a.id === id) || allAnns[0]
       setAnnouncement(fallback)
       setIsLoading(false)
     }

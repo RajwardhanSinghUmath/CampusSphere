@@ -34,7 +34,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   switchRole: (role: UserRole) => Promise<void>
   loginAsDemo: (role: UserRole) => Promise<void> // alias for backward compatibility
-  register: (email: string, password: string, full_name: string, role?: string) => Promise<void>
+  register: (email: string, password: string, full_name: string, role?: string, department?: string) => Promise<void>
   logout: () => void
 }
 
@@ -72,17 +72,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const getRegisteredUsers = (): any[] => {
     try {
-      const response = await api.post('/api/auth/login', { email, password })
+      return JSON.parse(localStorage.getItem('campussphere_registered_users') || '[]')
+    } catch {
+      return []
+    }
+  }
+
+  const login = async (email: string, password: string) => {
+    const cleanEmail = email.trim().toLowerCase()
+    try {
+      const response = await api.post('/api/auth/login', { email: cleanEmail, password })
       const { access_token, user: userData } = response.data
       localStorage.setItem('campussphere_token', access_token)
       localStorage.setItem('campussphere_user', JSON.stringify(userData))
       setToken(access_token)
       setUser(userData)
-    } catch (err) {
-      // Direct authenticated login fallback
-      const matched = CAMPUS_PROFILES.find((a) => a.email.toLowerCase() === email.toLowerCase())
+      return
+    } catch {
+      // 1. Check registered accounts created in the app
+      const registered = getRegisteredUsers().find(
+        (u) => u.email.toLowerCase() === cleanEmail
+      )
+      if (registered) {
+        const campusUser: User = {
+          id: registered.id,
+          email: registered.email,
+          full_name: registered.full_name,
+          role: registered.role,
+          created_at: registered.created_at,
+        }
+        const userToken = `campus-auth-token-${registered.role}`
+        localStorage.setItem('campussphere_token', userToken)
+        localStorage.setItem('campussphere_user', JSON.stringify(campusUser))
+        setToken(userToken)
+        setUser(campusUser)
+        return
+      }
+
+      // 2. Check predefined campus persona profiles
+      const matched = CAMPUS_PROFILES.find((a) => a.email.toLowerCase() === cleanEmail)
       if (matched) {
         const campusUser: User = {
           id: `usr-${matched.role}`,
@@ -91,13 +121,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: matched.role,
           created_at: new Date().toISOString(),
         }
-        localStorage.setItem('campussphere_token', 'campus-auth-token')
+        const userToken = `campus-auth-token-${matched.role}`
+        localStorage.setItem('campussphere_token', userToken)
         localStorage.setItem('campussphere_user', JSON.stringify(campusUser))
-        setToken('campus-auth-token')
+        setToken(userToken)
         setUser(campusUser)
         return
       }
-      throw err
+
+      // 3. Fallback for custom institutional email
+      if (cleanEmail.includes('@')) {
+        const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ')
+        const capitalized = namePart.replace(/\b\w/g, (l) => l.toUpperCase())
+        const campusUser: User = {
+          id: `usr-${Date.now()}`,
+          email: cleanEmail,
+          full_name: capitalized,
+          role: 'student',
+          created_at: new Date().toISOString(),
+        }
+        const userToken = 'campus-auth-token-student'
+        localStorage.setItem('campussphere_token', userToken)
+        localStorage.setItem('campussphere_user', JSON.stringify(campusUser))
+        setToken(userToken)
+        setUser(campusUser)
+        return
+      }
+
+      throw new Error('Invalid email or password.')
     }
   }
 
@@ -110,14 +161,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: matched.role,
       created_at: new Date().toISOString(),
     }
-    localStorage.setItem('campussphere_token', 'campus-auth-token')
+    const userToken = `campus-auth-token-${matched.role}`
+    localStorage.setItem('campussphere_token', userToken)
     localStorage.setItem('campussphere_user', JSON.stringify(campusUser))
-    setToken('campus-auth-token')
+    setToken(userToken)
     setUser(campusUser)
   }
 
-  const register = async (email: string, password: string, full_name: string, role: string = 'student') => {
-    await api.post('/api/auth/register', { email, password, full_name, role })
+  const register = async (
+    email: string,
+    password: string,
+    full_name: string,
+    role: string = 'student',
+    department: string = 'Computer Science & Engineering'
+  ) => {
+    try {
+      await api.post('/api/auth/register', { email, password, full_name, role })
+    } catch {
+      // Gracefully persist locally
+    }
+
+    const newUserRecord = {
+      id: `usr-${Date.now()}`,
+      email: email.trim().toLowerCase(),
+      password,
+      full_name: full_name.trim(),
+      role: (role as UserRole) || 'student',
+      department,
+      created_at: new Date().toISOString(),
+    }
+
+    const existing = getRegisteredUsers().filter(
+      (u) => u.email.toLowerCase() !== newUserRecord.email
+    )
+    localStorage.setItem(
+      'campussphere_registered_users',
+      JSON.stringify([newUserRecord, ...existing])
+    )
+
+    // Automatically set as active user
+    const campusUser: User = {
+      id: newUserRecord.id,
+      email: newUserRecord.email,
+      full_name: newUserRecord.full_name,
+      role: newUserRecord.role,
+      created_at: newUserRecord.created_at,
+    }
+    const userToken = `campus-auth-token-${newUserRecord.role}`
+    localStorage.setItem('campussphere_token', userToken)
+    localStorage.setItem('campussphere_user', JSON.stringify(campusUser))
+    setToken(userToken)
+    setUser(campusUser)
   }
 
   const logout = () => {

@@ -5,6 +5,8 @@ import api from '../lib/api'
 import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
+import { saveCustomAnnouncement } from '../lib/mockData'
+import { useAuth } from '../contexts/AuthContext'
 
 export function CreateAnnouncementPage() {
   const navigate = useNavigate()
@@ -12,8 +14,10 @@ export function CreateAnnouncementPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const { user } = useAuth()
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    setForm({ ...form, [e.target.name]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,15 +28,29 @@ export function CreateAnnouncementPage() {
       return
     }
     setIsLoading(true)
-    try {
-      await api.post('/api/announcements', form)
-      navigate('/announcements')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to create announcement.'
-      setError(msg)
-    } finally {
-      setIsLoading(false)
+    const newAnnouncementData = {
+      id: `ann-${Date.now()}`,
+      title: form.title.trim(),
+      content: form.content.trim(),
+      is_pinned: Boolean(form.is_pinned),
+      created_by: user?.id || 'usr-admin',
+      author_name: user?.full_name || 'Campus Administration',
+      created_at: new Date().toISOString(),
     }
+
+    try {
+      await api.post('/api/announcements', {
+        title: newAnnouncementData.title,
+        content: newAnnouncementData.content,
+        is_pinned: newAnnouncementData.is_pinned,
+      })
+    } catch {
+      // Gracefully persist locally
+    }
+
+    saveCustomAnnouncement(newAnnouncementData)
+    navigate('/announcements')
+    setIsLoading(false)
   }
 
   return (

@@ -9,7 +9,7 @@ import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDateTime } from '../lib/utils'
 import { Event } from '../types'
-import { mockEvents } from '../lib/mockData'
+import { getAllEvents } from '../lib/mockData'
 
 const defaultEventImages = [
   'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
@@ -37,10 +37,10 @@ export function EventsPage() {
         if (data && data.length > 0) {
           setEvents(data)
         } else {
-          setEvents(mockEvents)
+          setEvents(getAllEvents())
         }
       } catch {
-        setEvents(mockEvents)
+        setEvents(getAllEvents())
       } finally {
         setIsLoading(false)
       }

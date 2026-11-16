@@ -9,7 +9,7 @@ import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDate } from '../lib/utils'
 import { Announcement } from '../types'
-import { mockAnnouncements } from '../lib/mockData'
+import { getAllAnnouncements } from '../lib/mockData'
 
 export function AnnouncementsPage() {
   const { canCreateAnnouncements, isAdmin } = useAuth()
@@ -25,10 +25,10 @@ export function AnnouncementsPage() {
         if (data && data.length > 0) {
           setAnnouncements(data)
         } else {
-          setAnnouncements(mockAnnouncements)
+          setAnnouncements(getAllAnnouncements())
         }
       } catch {
-        setAnnouncements(mockAnnouncements)
+        setAnnouncements(getAllAnnouncements())
       } finally {
         setIsLoading(false)
       }

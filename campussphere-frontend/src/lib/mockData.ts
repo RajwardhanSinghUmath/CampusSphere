@@ -293,3 +293,83 @@ export const mockStats = {
   total_clubs: mockClubs.length,
   open_lost_items: mockLostFound.filter((i) => i.status === 'open').length,
 }
+
+export function getAllEvents(): Event[] {
+  try {
+    const custom = JSON.parse(localStorage.getItem('campussphere_custom_events') || '[]')
+    return [...custom, ...mockEvents]
+  } catch {
+    return mockEvents
+  }
+}
+
+export function saveCustomEvent(event: Event): Event[] {
+  try {
+    const existing = JSON.parse(localStorage.getItem('campussphere_custom_events') || '[]')
+    const updated = [event, ...existing]
+    localStorage.setItem('campussphere_custom_events', JSON.stringify(updated))
+    return [...updated, ...mockEvents]
+  } catch {
+    return mockEvents
+  }
+}
+
+export function getAllClubs(): Club[] {
+  try {
+    const custom = JSON.parse(localStorage.getItem('campussphere_custom_clubs') || '[]')
+    return [...custom, ...mockClubs]
+  } catch {
+    return mockClubs
+  }
+}
+
+export function saveCustomClub(club: Club): Club[] {
+  try {
+    const existing = JSON.parse(localStorage.getItem('campussphere_custom_clubs') || '[]')
+    const updated = [club, ...existing]
+    localStorage.setItem('campussphere_custom_clubs', JSON.stringify(updated))
+    return [...updated, ...mockClubs]
+  } catch {
+    return mockClubs
+  }
+}
+
+export function getAllAnnouncements(): Announcement[] {
+  try {
+    const custom = JSON.parse(localStorage.getItem('campussphere_custom_announcements') || '[]')
+    return [...custom, ...mockAnnouncements]
+  } catch {
+    return mockAnnouncements
+  }
+}
+
+export function saveCustomAnnouncement(announcement: Announcement): Announcement[] {
+  try {
+    const existing = JSON.parse(localStorage.getItem('campussphere_custom_announcements') || '[]')
+    const updated = [announcement, ...existing]
+    localStorage.setItem('campussphere_custom_announcements', JSON.stringify(updated))
+    return [...updated, ...mockAnnouncements]
+  } catch {
+    return mockAnnouncements
+  }
+}
+
+export function getAllLostFound(): LostFoundItem[] {
+  try {
+    const custom = JSON.parse(localStorage.getItem('campussphere_custom_lostfound') || '[]')
+    return [...custom, ...mockLostFound]
+  } catch {
+    return mockLostFound
+  }
+}
+
+export function saveCustomLostFound(item: LostFoundItem): LostFoundItem[] {
+  try {
+    const existing = JSON.parse(localStorage.getItem('campussphere_custom_lostfound') || '[]')
+    const updated = [item, ...existing]
+    localStorage.setItem('campussphere_custom_lostfound', JSON.stringify(updated))
+    return [...updated, ...mockLostFound]
+  } catch {
+    return mockLostFound
+  }
+}

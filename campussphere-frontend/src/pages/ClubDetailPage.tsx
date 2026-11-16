@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { formatDateTime } from '../lib/utils'
 import { Club, Event } from '../types'
-import { mockClubs, mockEvents } from '../lib/mockData'
+import { getAllClubs, mockEvents } from '../lib/mockData'
 
 interface Member {
   id: string
@@ -50,7 +50,8 @@ export function ClubDetailPage() {
         loadedClub = clubRes.value.data
         setClub(loadedClub)
       } else {
-        loadedClub = mockClubs.find((c) => c.id === id) || mockClubs[0]
+        const allClubs = getAllClubs()
+        loadedClub = allClubs.find((c) => c.id === id) || allClubs[0]
         setClub(loadedClub)
       }
 

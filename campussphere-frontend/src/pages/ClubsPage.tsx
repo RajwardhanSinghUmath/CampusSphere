@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Club } from '../types'
-import { mockClubs } from '../lib/mockData'
+import { getAllClubs } from '../lib/mockData'
 
 export function ClubsPage() {
   const { canCreateClubs, isAdmin } = useAuth()
@@ -25,10 +25,10 @@ export function ClubsPage() {
       if (data && data.length > 0) {
         setClubs(data)
       } else {
-        setClubs(mockClubs)
+        setClubs(getAllClubs())
       }
     } catch {
-      setClubs(mockClubs)
+      setClubs(getAllClubs())
     } finally {
       setIsLoading(false)
     }

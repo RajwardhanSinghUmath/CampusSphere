@@ -1,17 +1,27 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { GraduationCap, Shield, Users, BookOpen, Briefcase, UserCheck, ArrowRight } from 'lucide-react'
+import { GraduationCap, Shield, Users, BookOpen, Briefcase, UserCheck, Eye, EyeOff } from 'lucide-react'
 import { useAuth, CAMPUS_PROFILES } from '../contexts/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { UserRole } from '../types'
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: 'bg-red-50 border-red-200 text-red-700 hover:border-red-400',
+  club_leader: 'bg-purple-50 border-purple-200 text-purple-700 hover:border-purple-400',
+  faculty: 'bg-green-50 border-green-200 text-green-700 hover:border-green-400',
+  staff: 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-400',
+  student: 'bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-400',
+}
 
 export function LoginPage() {
   const { login, switchRole } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPass, setShowPass] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingRole, setLoadingRole] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,12 +32,12 @@ export function LoginPage() {
       await login(email, password)
       navigate('/')
     } catch (err: any) {
-      const msg =
+      setError(
         err?.response?.data?.detail ||
         err?.response?.data?.message ||
         err?.message ||
         'Invalid credentials. Please verify your campus email and password.'
-      setError(msg)
+      )
     } finally {
       setIsLoading(false)
     }
@@ -35,14 +45,14 @@ export function LoginPage() {
 
   const handleProfileSelect = async (role: UserRole) => {
     setError('')
-    setIsLoading(true)
+    setLoadingRole(role)
     try {
       await switchRole(role)
       navigate('/')
     } catch {
       navigate('/')
     } finally {
-      setIsLoading(false)
+      setLoadingRole(null)
     }
   }
 
@@ -68,26 +78,34 @@ export function LoginPage() {
 
         {/* Campus Persona Quick Selection */}
         <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/80">
-          <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
               Campus Personas (Quick Sign-In)
             </span>
-            <span className="text-[10px] text-blue-600 font-medium">Select to enter</span>
+            <span className="text-[10px] text-blue-600 font-medium bg-blue-100 px-2 py-0.5 rounded-full">
+              No password needed
+            </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {CAMPUS_PROFILES.map((acc) => {
               const Icon = roleIcons[acc.role] || UserCheck
+              const colorClass = ROLE_COLORS[acc.role] || ROLE_COLORS.student
+              const isSelected = loadingRole === acc.role
               return (
                 <button
                   key={acc.role}
                   type="button"
-                  disabled={isLoading}
+                  disabled={isLoading || loadingRole !== null}
                   onClick={() => handleProfileSelect(acc.role)}
-                  className="flex flex-col items-center p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-blue-50 hover:border-blue-300 transition-all text-center shadow-2xs group cursor-pointer"
+                  className={`flex flex-col items-center p-3 rounded-xl border-2 bg-white transition-all text-center shadow-sm group cursor-pointer disabled:opacity-60 ${colorClass} ${isSelected ? 'ring-2 ring-blue-400 ring-offset-1' : ''}`}
                 >
-                  <Icon size={16} className="text-blue-600 group-hover:scale-110 transition-transform mb-1" />
-                  <span className="text-xs font-semibold text-gray-800 leading-tight">{acc.roleTitle}</span>
-                  <span className="text-[10px] text-gray-400 capitalize">{acc.role.replace('_', ' ')}</span>
+                  {isSelected ? (
+                    <div className="w-4 h-4 mb-1 border-2 border-current rounded-full animate-spin border-t-transparent" />
+                  ) : (
+                    <Icon size={16} className="mb-1 group-hover:scale-110 transition-transform" />
+                  )}
+                  <span className="text-xs font-semibold leading-tight">{acc.roleTitle}</span>
+                  <span className="text-[10px] opacity-70 mt-0.5 capitalize">{acc.role.replace('_', ' ')}</span>
                 </button>
               )
             })}
@@ -96,7 +114,7 @@ export function LoginPage() {
 
         <div className="relative flex py-2 items-center mb-4">
           <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink mx-3 text-gray-400 text-xs uppercase font-medium">Or Sign In with Credentials</span>
+          <span className="flex-shrink mx-3 text-gray-400 text-xs uppercase font-medium">Or sign in with credentials</span>
           <div className="flex-grow border-t border-gray-200"></div>
         </div>
 
@@ -118,17 +136,28 @@ export function LoginPage() {
             autoComplete="off"
             spellCheck={false}
           />
-          <Input
-            id="password"
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            spellCheck={false}
-          />
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPass ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
             Sign In to CampusSphere
           </Button>
@@ -137,7 +166,7 @@ export function LoginPage() {
         <p className="text-center text-sm text-gray-500 mt-6">
           New to CampusSphere?{' '}
           <Link to="/register" className="text-blue-600 font-medium hover:underline">
-            Register your account
+            Create your account
           </Link>
         </p>
       </div>

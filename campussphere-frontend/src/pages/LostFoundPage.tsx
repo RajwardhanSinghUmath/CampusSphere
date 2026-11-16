@@ -9,7 +9,7 @@ import { Badge } from '../components/ui/Badge'
 import { EmptyState } from '../components/ui/EmptyState'
 import { formatDate } from '../lib/utils'
 import { LostFoundItem } from '../types'
-import { mockLostFound } from '../lib/mockData'
+import { getAllLostFound } from '../lib/mockData'
 
 type FilterType = 'all' | 'lost' | 'found' | 'resolved'
 
@@ -34,22 +34,22 @@ export function LostFoundPage() {
         if (data && data.length > 0) {
           setItems(data)
         } else {
-          const filteredMock = mockLostFound.filter(item => {
+          const filteredAll = getAllLostFound().filter(item => {
             if (filter === 'lost') return item.type === 'lost' && item.status === 'open'
             if (filter === 'found') return item.type === 'found' && item.status === 'open'
             if (filter === 'resolved') return item.status === 'resolved'
             return item.status === 'open'
           })
-          setItems(filteredMock)
+          setItems(filteredAll)
         }
       } catch {
-        const filteredMock = mockLostFound.filter(item => {
+        const filteredItems = getAllLostFound().filter(item => {
           if (filter === 'lost') return item.type === 'lost' && item.status === 'open'
           if (filter === 'found') return item.type === 'found' && item.status === 'open'
           if (filter === 'resolved') return item.status === 'resolved'
           return item.status === 'open'
         })
-        setItems(filteredMock)
+        setItems(filteredItems)
       } finally {
         setIsLoading(false)
       }
